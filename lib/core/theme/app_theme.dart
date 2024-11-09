@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   static final lightTheme = ThemeData(
-      primaryColor: Colors.purple,
+      primaryColor: const Color.fromARGB(255, 217, 0, 255),
       scaffoldBackgroundColor: Colors.white,
       textTheme: TextTheme(
-        headlineMedium:
-            TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
+        headlineMedium: TextStyle(
+            color: const Color.fromARGB(255, 217, 0, 255),
+            fontWeight: FontWeight.bold),
       ));
 }

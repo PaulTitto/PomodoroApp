@@ -9,12 +9,29 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: onSelected,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings")
-        ]);
+    return BottomAppBar(
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8.0,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          IconButton(
+              onPressed: () => onSelected(0),
+              icon: Icon(
+                Icons.home,
+                color: currentIndex == 0 ? Color(0xFFD047FF) : Colors.grey,
+              )),
+          IconButton(
+              onPressed: () => onSelected(1),
+              icon: Icon(
+                Icons.settings,
+                color: currentIndex == 1 ? Color(0xFFD047FF) : Colors.grey,
+              )),
+          SizedBox(
+            width: 70,
+          )
+        ],
+      ),
+    );
   }
 }

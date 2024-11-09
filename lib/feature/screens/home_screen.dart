@@ -10,11 +10,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-
-  final List<Widget> _pages = [
-    Center(child: Text("Home")),
-    Center(child: Text("Settings"))
-  ];
+  bool isPlaying = false;
+  bool isSave = false;
 
   void _onTabSelected(int index) {
     setState(() {
@@ -25,11 +22,53 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: Center(
+        child:
+            _currentIndex == 0 ? Text("Home Screen") : Text("Settings Screen"),
+      ),
+      floatingActionButton: SizedBox(
+          width: 70,
+          height: 70,
+          child: _currentIndex == 0 ? _HomeFAB() : _SettingFAB()),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _currentIndex,
         onSelected: _onTabSelected,
       ),
     );
+  }
+
+  Widget _HomeFAB() {
+    return FloatingActionButton(
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(40.0))),
+        backgroundColor: Color(0xFFD047FF),
+        child: Icon(
+          isPlaying ? Icons.play_arrow : Icons.stop,
+          color: Colors.white,
+          size: 40,
+        ),
+        onPressed: () {
+          setState(() {
+            isPlaying = !isPlaying;
+          });
+        });
+  }
+
+  Widget _SettingFAB() {
+    return FloatingActionButton(
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(40.0))),
+        backgroundColor: Color(0xFFD047FF),
+        child: Icon(
+          Icons.save,
+          color: Colors.white,
+          size: 30,
+        ),
+        onPressed: () {
+          setState(() {
+            isSave = !isSave;
+          });
+        });
   }
 }
