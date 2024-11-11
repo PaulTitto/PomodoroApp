@@ -8,10 +8,7 @@
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
-<<<<<<< HEAD
             android:enableOnBackInvokedCallback="true"
-=======
->>>>>>> 106b4a84b11c4f0a2448b423731fc813b7a20d19
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"

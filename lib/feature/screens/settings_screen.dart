@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:podomoro_app/feature/screens/about_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -46,10 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, color: Colors.white),
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Close the modal/screen
-                    },
+                    icon: Icon(Icons.close, color: Colors.white), onPressed: () {  },
                   ),
                 ],
               ),
@@ -169,37 +167,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildAboutOption() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 0.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.info, color: Colors.white),
-              SizedBox(width: 10),
-              Text(
-                "About",
-                style: TextStyle(color: Colors.white),
-              ),
-            ],
-          ),
-          Transform.scale(
-            scale: 0.8,
-            child: Switch(
-              value: aboutEnabled,
-              activeColor: Color(0xFFD047FF),
-              activeTrackColor: Colors.white,
-              inactiveThumbColor: Colors.black,
-              inactiveTrackColor: Colors.white,
-              onChanged: (bool value) {
-                setState(() {
-                  aboutEnabled = value;
-                });
-              },
+    return GestureDetector(
+      onTap: (){
+        setState(() {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AboutScreen()),
+          );
+        });
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 0.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.info, color: Colors.white),
+                SizedBox(width: 10),
+                Text(
+                  "More information about this app",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
