@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:podomoro_app/feature/screens/main_screen.dart';
 import 'package:podomoro_app/feature/screens/settings_screen.dart';
 import 'package:podomoro_app/feature/widgets/CustomBottomNavigationBar.dart';
 
@@ -14,6 +15,13 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isPlaying = false;
   bool isSave = false;
 
+  // Define timeSettings here
+  Map<String, String> timeSettings = {
+    'Pomodoro': '25',
+    'Short Break': '05',
+    'Long Break': '15',
+  };
+
   void _onTabSelected(int index) {
     setState(() {
       _currentIndex = index;
@@ -24,7 +32,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: _currentIndex == 0 ? Text("Home Screen") : SettingsScreen(),
+        child: _currentIndex == 0
+            ? MainScreen(timeSettings: timeSettings) // Passing timeSettings
+            : SettingsScreen(),
       ),
       floatingActionButton: SizedBox(
         width: 70,

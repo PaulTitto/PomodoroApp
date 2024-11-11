@@ -1,6 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:podomoro_app/feature/screens/about_screen.dart';
+import 'package:podomoro_app/feature/screens/main_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -11,9 +10,8 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool notificationsEnabled = true;
-  bool aboutEnabled = false; // This is for demonstration; you might replace it with another purpose if needed.
+  bool aboutEnabled = false;
 
-  // Map to store selected times for each setting
   Map<String, String> timeSettings = {
     'Pomodoro': '25',
     'Short Break': '05',
@@ -28,9 +26,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         decoration: BoxDecoration(
           color: Color(0xFFD047FF),
           borderRadius: BorderRadius.circular(30.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 10,
+              offset: Offset(0, 5),
+            ),
+          ],
         ),
-        width: 300,
-        height: 450,
+        width: 320,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -41,13 +45,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Text(
                     "Settings",
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, color: Colors.white), onPressed: () {  },
+                    icon: Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
@@ -60,18 +65,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               SizedBox(height: 10),
-              Center(
-                child: Column(
-                  children: [
-                    _buildTimeSetting('Pomodoro'),
-                    _buildTimeSetting('Short Break'),
-                    _buildTimeSetting('Long Break'),
-                  ],
-                ),
+              Column(
+                children: [
+                  _buildTimeSetting('Pomodoro'),
+                  _buildTimeSetting('Short Break'),
+                  _buildTimeSetting('Long Break'),
+                ],
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 20),
               Text(
-                'ADVANCE SETTINGS',
+                'ADVANCED SETTINGS',
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.white.withOpacity(0.8),
@@ -84,6 +87,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _buildAboutOption(),
                 ],
               ),
+              SizedBox(height: 20),
+
             ],
           ),
         ),
@@ -99,24 +104,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           Text(label, style: TextStyle(color: Colors.white)),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 40, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            width: 124.0,
-            height: 40.0,
+            width: 100,
             child: DropdownButton<String>(
               value: timeSettings[label],
               icon: Icon(Icons.arrow_drop_down, color: Colors.white),
               dropdownColor: Color(0xFFD047FF),
+              isExpanded: true,
+              underline: Container(),
               items: ['05', '10', '15', '20', '25', '30']
-                  .map(
-                    (e) => DropdownMenuItem(
-                  value: e,
-                  child: Text(e, style: TextStyle(color: Colors.white)),
-                ),
-              )
+                  .map((e) => DropdownMenuItem(
+                value: e,
+                child: Center(child: Text(e, style: TextStyle(color: Colors.white))),
+              ))
                   .toList(),
               onChanged: (newValue) {
                 setState(() {
@@ -132,7 +131,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildNotificationToggle() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 0.0),
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -140,20 +139,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Icon(Icons.notifications, color: Colors.white),
               SizedBox(width: 10),
-              Text(
-                "Notifications",
-                style: TextStyle(color: Colors.white),
-              ),
+              Text("Notifications", style: TextStyle(color: Colors.white)),
             ],
           ),
           Transform.scale(
             scale: 0.8,
             child: Switch(
               value: notificationsEnabled,
-              activeColor: Color(0xFFD047FF),
+              activeColor: Colors.purpleAccent,
               activeTrackColor: Colors.white,
-              inactiveThumbColor: Colors.black,
-              inactiveTrackColor: Colors.white,
               onChanged: (bool value) {
                 setState(() {
                   notificationsEnabled = value;
@@ -168,16 +162,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildAboutOption() {
     return GestureDetector(
-      onTap: (){
-        setState(() {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AboutScreen()),
-          );
-        });
-      },
+      onTap: () {},
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 0.0),
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -185,10 +172,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Icon(Icons.info, color: Colors.white),
                 SizedBox(width: 10),
-                Text(
-                  "More information about this app",
-                  style: TextStyle(color: Colors.white),
-                ),
+                Text("About this app", style: TextStyle(color: Colors.white)),
               ],
             ),
           ],
