@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:podomoro_app/feature/screens/settings_screen.dart';
+=======
+>>>>>>> 106b4a84b11c4f0a2448b423731fc813b7a20d19
 import 'package:podomoro_app/feature/widgets/CustomBottomNavigationBar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -25,7 +28,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Center(
         child:
+<<<<<<< HEAD
             _currentIndex == 0 ? Text("Home Screen") : SettingsScreen(),
+=======
+            _currentIndex == 0 ? Text("Home Screen") : Text("Settings Screen"),
+>>>>>>> 106b4a84b11c4f0a2448b423731fc813b7a20d19
       ),
       floatingActionButton: SizedBox(
           width: 70,
@@ -42,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _HomeFAB() {
     return FloatingActionButton(
         shape: const RoundedRectangleBorder(
+<<<<<<< HEAD
             borderRadius: BorderRadius.all(Radius.circular(40.0)),
             side: BorderSide(
                 color: Colors.white,
@@ -50,6 +58,12 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Color(0xFFD047FF),
         child: Icon(
           isPlaying ? Icons.stop : Icons.play_arrow,
+=======
+            borderRadius: BorderRadius.all(Radius.circular(40.0))),
+        backgroundColor: Color(0xFFD047FF),
+        child: Icon(
+          isPlaying ? Icons.play_arrow : Icons.stop,
+>>>>>>> 106b4a84b11c4f0a2448b423731fc813b7a20d19
           color: Colors.white,
           size: 40,
         ),
@@ -63,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _SettingFAB() {
     return FloatingActionButton(
         shape: const RoundedRectangleBorder(
+<<<<<<< HEAD
             borderRadius: BorderRadius.all(Radius.circular(40.0)),
             side: BorderSide(
               color: Colors.white,
@@ -72,6 +87,12 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Color(0xFFD047FF),
         child: Icon(
           Icons.check,
+=======
+            borderRadius: BorderRadius.all(Radius.circular(40.0))),
+        backgroundColor: Color(0xFFD047FF),
+        child: Icon(
+          Icons.save,
+>>>>>>> 106b4a84b11c4f0a2448b423731fc813b7a20d19
           color: Colors.white,
           size: 30,
         ),
