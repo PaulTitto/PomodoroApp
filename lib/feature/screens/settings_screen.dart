@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:podomoro_app/feature/screens/main_screen.dart';
+import 'package:podomoro_app/data/database.dart';
+import 'package:podomoro_app/data/setting.dart';
+import 'package:podomoro_app/feature/screens/about_screen.dart';
+// import 'package:podomoro_app/feature/screens/main_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -11,6 +14,11 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool notificationsEnabled = true;
   bool aboutEnabled = false;
+
+  // final database = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+  // final settingDao = database.settingDao;
+  //
+  // final setting = Setting("Podomoro", "Frank");
 
   Map<String, String> timeSettings = {
     'Pomodoro': '25',
@@ -104,6 +112,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           Text(label, style: TextStyle(color: Colors.white)),
           Container(
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+              color: Colors.white.withOpacity(0.2),
+            ),
             width: 100,
             child: DropdownButton<String>(
               value: timeSettings[label],
@@ -146,7 +158,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             scale: 0.8,
             child: Switch(
               value: notificationsEnabled,
-              activeColor: Colors.purpleAccent,
+              activeColor: Color(0xFFD047FF),
               activeTrackColor: Colors.white,
               onChanged: (bool value) {
                 setState(() {
@@ -162,7 +174,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildAboutOption() {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        setState(() {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AboutScreen())
+          );
+        });
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10.0),
         child: Row(
@@ -172,7 +191,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Icon(Icons.info, color: Colors.white),
                 SizedBox(width: 10),
-                Text("About this app", style: TextStyle(color: Colors.white)),
+                Text("More information about this app", style: TextStyle(color: Colors.white)),
               ],
             ),
           ],

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+import '../widgets/CustomTapBar.dart';
+
 class MainScreen extends StatefulWidget {
   final Map<String, String> timeSettings;
 
@@ -11,7 +13,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  double progress = 1.0;
+  double progress = 0.5;
   int duration = 1500;  // Default to Pomodoro duration
   Timer? _timer;
 
@@ -69,45 +71,29 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                     // Center text
                     Text(
-                      timeText,
+                      // timeText,
+                      "",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    SizedBox(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 110.0),
+                        // padding: EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 100.0),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Customtapbar()
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 20.0),
-                child: TabBar(
-                  onTap: (index) {
-                    // if (index == 0) {
-                    //   startTimer(shortBreakDuration);
-                    // } else if (index == 1) {
-                    //   startTimer(pomodoroDuration);
-                    // } else if (index == 2) {
-                    //   startTimer(longBreakDuration);
-                    // }
-                  },
-                  labelColor: Colors.purpleAccent,
-                  unselectedLabelColor: Colors.grey,
-                  indicator: UnderlineTabIndicator(
-                    borderSide: BorderSide(width: 4.0, color: Colors.purpleAccent),
-                    insets: EdgeInsets.symmetric(horizontal: 20.0),
-                  ),
-                  tabs: [
-                    Tab(text: "short break"),
-                    Tab(text: "pomodoro"),
-                    Tab(text: "long break"),
-                  ],
-                ),
-              ),
-            ),
+
           ],
         ),
       ),
