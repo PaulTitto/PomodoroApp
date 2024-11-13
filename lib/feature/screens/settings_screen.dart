@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:podomoro_app/feature/screens/about_screen.dart';
-// import 'package:podomoro_app/feature/screens/main_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:podomoro_app/firebase_options.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -13,12 +15,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool notificationsEnabled = true;
   bool aboutEnabled = false;
 
-
+  // Time settings data
   Map<String, String> timeSettings = {
     'Pomodoro': '25',
     'Short Break': '05',
     'Long Break': '15',
   };
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDataFromFirestore();
+  }
+
+  // Fetch data from Firestore
+  Future<void> _fetchDataFromFirestore() async {
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance
+        .collection("podomoroapp")
+        .doc("5Z1axeBfpxb2CzviJYlu")
+        .get();
+
+    if (snapshot.exists) {
+      setState(() {
+        timeSettings['Pomodoro'] = snapshot['pomodoro']['pomodoro'].toString();
+        timeSettings['Short Break'] = snapshot['pomodoro']['shortBreak'].toString();
+        timeSettings['Long Break'] = snapshot['pomodoro']['longBreak'].toString();
+      });
+    }
+  }
+
+  Future<void> _updateData() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection("podomoroapp")
+          .doc("5Z1axeBfpxb2CzviJYlu")
+          .update({
+        'pomodoro': {
+          'pomodoro': int.parse(timeSettings['Pomodoro']!),
+          'shortBreak': int.parse(timeSettings['Short Break']!),
+          'longBreak': int.parse(timeSettings['Long Break']!)
+        }
+      });
+    } catch (e) {
+      print("Error updating data: $e");
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   IconButton(
                     icon: Icon(Icons.close, color: Colors.white),
                     onPressed: () {
-                      
+                      Navigator.of(context).pop();
                     },
                   ),
                 ],
@@ -92,7 +134,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
               SizedBox(height: 20),
-
             ],
           ),
         ),
@@ -109,7 +150,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Text(label, style: TextStyle(color: Colors.white)),
           Container(
             decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.0),
+              borderRadius: BorderRadius.circular(10.0),
               color: Colors.white.withOpacity(0.2),
             ),
             width: 100,
@@ -129,6 +170,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setState(() {
                   timeSettings[label] = newValue!;
                 });
+                _updateData();
               },
             ),
           ),
@@ -173,9 +215,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       onTap: () {
         setState(() {
           Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AboutScreen())
-          );
+              context, MaterialPageRoute(builder: (context) => const AboutScreen()));
         });
       },
       child: Padding(

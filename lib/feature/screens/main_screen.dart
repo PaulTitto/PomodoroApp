@@ -1,28 +1,86 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
 import '../widgets/CustomTapBar.dart';
 
 class MainScreen extends StatefulWidget {
-  final Map<String, String> timeSettings;
-
-  const MainScreen({super.key, required this.timeSettings});
+  const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<MainScreen> createState() => MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  double progress = 0.5;
-  int duration = 1500;  // Default to Pomodoro duration
+class MainScreenState extends State<MainScreen> {
+  double progress = 1.0;  // Start with full progress
+  int duration = 1500;    // Default duration in seconds (25 minutes)
+  int selectedDuration = 1500; // Duration to reset to when restarting timer
   Timer? _timer;
 
-  late int shortBreakDuration;
-  late int pomodoroDuration;
-  late int longBreakDuration;
+  // Default durations for each mode
+  int shortBreakDuration = 300;
+  int pomodoroDuration = 1500;
+  int longBreakDuration = 900;
 
-  late String timeText;
+  Future<void> _fetchDataFromFirestore() async {
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance
+        .collection("podomoroapp")
+        .doc("5Z1axeBfpxb2CzviJYlu")
+        .get();
 
+    if (snapshot.exists) {
+      setState(() {
+        pomodoroDuration = int.parse(snapshot['pomodoro']['pomodoro'].toString()) * 60;
+        shortBreakDuration = int.parse(snapshot['pomodoro']['shortBreak'].toString()) * 60;
+        longBreakDuration = int.parse(snapshot['pomodoro']['longBreak'].toString()) * 60;
+        selectedDuration = pomodoroDuration;  // Set initial selected duration to Pomodoro
+        duration = selectedDuration;
+      });
+    }
+  }
+
+  void startTimer() {
+    _timer?.cancel(); // Cancel any existing timer
+
+    setState(() {
+      progress = 1.0;  // Reset progress to full
+    });
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (duration > 0) {
+        setState(() {
+          duration--;
+          progress = duration / selectedDuration;  // Update progress based on selected duration
+        });
+      } else {
+        timer.cancel();  // Stop timer when it reaches zero
+      }
+    });
+  }
+
+  void stopTimer() {
+    _timer?.cancel();
+    setState(() {
+      duration = selectedDuration;  // Reset duration to the selected duration
+      progress = 1.0;               // Reset progress to full
+    });
+  }
+
+  // Method to update duration based on the selected tab
+  void onTabSelected(int newDuration) {
+    _timer?.cancel();  // Stop any active timer
+    setState(() {
+      selectedDuration = newDuration;  // Update the base duration for the timer
+      duration = selectedDuration;     // Reset the timer to the new duration
+      progress = 1.0;                  // Reset progress to full
+    });
+    // startTimer();  // Start the timer with the new duration
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDataFromFirestore();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +90,11 @@ class _MainScreenState extends State<MainScreen> {
       child: Scaffold(
         body: Column(
           children: [
-            // Timer Display
             Expanded(
               child: Center(
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Gradient background circle
                     Container(
                       width: 150,
                       height: 150,
@@ -49,51 +105,38 @@ class _MainScreenState extends State<MainScreen> {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 10,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
                       ),
                     ),
-                    // Circular progress indicator
                     SizedBox(
                       width: 130,
                       height: 130,
                       child: CircularProgressIndicator(
-                        value: progress,
+                        value: progress,  // Reflect progress in the CircularProgressIndicator
                         strokeWidth: 8,
                         backgroundColor: Colors.white.withOpacity(0.2),
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     ),
-                    // Center text
+                    // Display the remaining time in MM:SS format
                     Text(
-                      // timeText,
-                      "",
-                      style: TextStyle(
+                      "${(duration ~/ 60).toString().padLeft(2, '0')}:${(duration % 60).toString().padLeft(2, '0')}",
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 110.0),
-                        // padding: EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 100.0),
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Customtapbar()
-                        ),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-
+            // Pass the callback to handle tab selection and update the timer
+            Customtapbar(
+              pomodoroDuration: pomodoroDuration,
+              shortBreakDuration: shortBreakDuration,
+              longBreakDuration: longBreakDuration,
+              onTabSelected: onTabSelected,
+            ),
           ],
         ),
       ),

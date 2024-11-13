@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:podomoro_app/feature/screens/main_screen.dart';
 import 'package:podomoro_app/feature/screens/settings_screen.dart';
 import 'package:podomoro_app/feature/widgets/CustomBottomNavigationBar.dart';
@@ -13,14 +14,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   bool isPlaying = false;
-  bool isSave = false;
 
-  // Define timeSettings here
-  Map<String, String> timeSettings = {
-    'Pomodoro': '25',
-    'Short Break': '05',
-    'Long Break': '15',
-  };
+  // Define a GlobalKey to reference MainScreenState
+  final GlobalKey<MainScreenState> _mainScreenKey = GlobalKey<MainScreenState>();
 
   void _onTabSelected(int index) {
     setState(() {
@@ -28,12 +24,27 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _saveSettingsToFirestore() async {
+    try {
+      await FirebaseFirestore.instance.collection("podomoroapp").doc("5Z1axeBfpxb2CzviJYlu").update({
+        'pomodoro': {
+          'pomodoro': 25,  // Example values; replace with dynamic data if needed
+          'shortBreak': 5,
+          'longBreak': 10
+        }
+      });
+      print("Settings saved successfully.");
+    } catch (e) {
+      print("Error saving settings: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: _currentIndex == 0
-            ? MainScreen(timeSettings: timeSettings) // Passing timeSettings
+            ? MainScreen(key: _mainScreenKey)  // Pass the GlobalKey to MainScreen
             : SettingsScreen(),
       ),
       floatingActionButton: SizedBox(
@@ -49,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Define the Floating Action Button for Play/Pause
   Widget _HomeFAB() {
     return FloatingActionButton(
       shape: const RoundedRectangleBorder(
@@ -65,10 +77,18 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           isPlaying = !isPlaying;
         });
+
+        // Start or stop timer in MainScreen
+        if (isPlaying) {
+          _mainScreenKey.currentState?.startTimer();
+        } else {
+          _mainScreenKey.currentState?.stopTimer();
+        }
       },
     );
   }
 
+  // Define the Floating Action Button for Saving Settings
   Widget _SettingFAB() {
     return FloatingActionButton(
       shape: const RoundedRectangleBorder(
@@ -76,16 +96,12 @@ class _HomeScreenState extends State<HomeScreen> {
         side: BorderSide(color: Colors.white, width: 2.0),
       ),
       backgroundColor: const Color(0xFFD047FF),
-      child: Icon(
+      child: const Icon(
         Icons.check,
         color: Colors.white,
         size: 30,
       ),
-      onPressed: () {
-        setState(() {
-          isSave = !isSave;
-        });
-      },
+      onPressed: _saveSettingsToFirestore,
     );
   }
 }
