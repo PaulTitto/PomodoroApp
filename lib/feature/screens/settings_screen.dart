@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:podomoro_app/data/database.dart';
-import 'package:podomoro_app/data/setting.dart';
 import 'package:podomoro_app/feature/screens/about_screen.dart';
 // import 'package:podomoro_app/feature/screens/main_screen.dart';
 
@@ -15,10 +13,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool notificationsEnabled = true;
   bool aboutEnabled = false;
 
-  // final database = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
-  // final settingDao = database.settingDao;
-  //
-  // final setting = Setting("Podomoro", "Frank");
 
   Map<String, String> timeSettings = {
     'Pomodoro': '25',
@@ -60,7 +54,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   IconButton(
                     icon: Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      
+                    },
                   ),
                 ],
               ),
