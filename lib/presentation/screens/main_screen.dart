@@ -11,12 +11,11 @@ class MainScreen extends StatefulWidget {
 }
 
 class MainScreenState extends State<MainScreen> {
-  double progress = 1.0;  // Start with full progress
-  int duration = 1500;    // Default duration in seconds (25 minutes)
-  int selectedDuration = 1500; // Duration to reset to when restarting timer
+  double progress = 1.0;
+  int duration = 1500;
+  int selectedDuration = 1500;
   Timer? _timer;
 
-  // Default durations for each mode
   int shortBreakDuration = 300;
   int pomodoroDuration = 1500;
   int longBreakDuration = 900;
@@ -32,27 +31,27 @@ class MainScreenState extends State<MainScreen> {
         pomodoroDuration = int.parse(snapshot['pomodoro']['pomodoro'].toString()) * 60;
         shortBreakDuration = int.parse(snapshot['pomodoro']['shortBreak'].toString()) * 60;
         longBreakDuration = int.parse(snapshot['pomodoro']['longBreak'].toString()) * 60;
-        selectedDuration = pomodoroDuration;  // Set initial selected duration to Pomodoro
+        selectedDuration = pomodoroDuration;
         duration = selectedDuration;
       });
     }
   }
 
   void startTimer() {
-    _timer?.cancel(); // Cancel any existing timer
+    _timer?.cancel();
 
     setState(() {
-      progress = 1.0;  // Reset progress to full
+      progress = 1.0;
     });
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (duration > 0) {
         setState(() {
           duration--;
-          progress = duration / selectedDuration;  // Update progress based on selected duration
+          progress = duration / selectedDuration;
         });
       } else {
-        timer.cancel();  // Stop timer when it reaches zero
+        timer.cancel();
       }
     });
   }
@@ -60,20 +59,18 @@ class MainScreenState extends State<MainScreen> {
   void stopTimer() {
     _timer?.cancel();
     setState(() {
-      duration = selectedDuration;  // Reset duration to the selected duration
-      progress = 1.0;               // Reset progress to full
+      duration = selectedDuration;
+      progress = 1.0;
     });
   }
 
-  // Method to update duration based on the selected tab
   void onTabSelected(int newDuration) {
-    _timer?.cancel();  // Stop any active timer
+    _timer?.cancel();
     setState(() {
-      selectedDuration = newDuration;  // Update the base duration for the timer
-      duration = selectedDuration;     // Reset the timer to the new duration
-      progress = 1.0;                  // Reset progress to full
+      selectedDuration = newDuration;
+      duration = selectedDuration;
+      progress = 1.0;
     });
-    // startTimer();  // Start the timer with the new duration
   }
 
   @override
@@ -111,13 +108,12 @@ class MainScreenState extends State<MainScreen> {
                       width: 130,
                       height: 130,
                       child: CircularProgressIndicator(
-                        value: progress,  // Reflect progress in the CircularProgressIndicator
+                        value: progress,
                         strokeWidth: 8,
                         backgroundColor: Colors.white.withOpacity(0.2),
                         valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     ),
-                    // Display the remaining time in MM:SS format
                     Text(
                       "${(duration ~/ 60).toString().padLeft(2, '0')}:${(duration % 60).toString().padLeft(2, '0')}",
                       style: const TextStyle(
@@ -130,7 +126,6 @@ class MainScreenState extends State<MainScreen> {
                 ),
               ),
             ),
-            // Pass the callback to handle tab selection and update the timer
             Customtapbar(
               pomodoroDuration: pomodoroDuration,
               shortBreakDuration: shortBreakDuration,

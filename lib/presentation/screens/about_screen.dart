@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:podomoro_app/feature/widgets/CustomAppBar.dart';
+
+import '../widgets/CustomAppBar.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});

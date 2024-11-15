@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:podomoro_app/feature/screens/home_screen.dart';
+import 'package:podomoro_app/presentation/screens/home_screen.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {

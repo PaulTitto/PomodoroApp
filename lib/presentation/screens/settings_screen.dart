@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:podomoro_app/feature/screens/about_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:podomoro_app/firebase_options.dart';
+import 'about_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final Map<String, String> timeSettings;
+  final Function(Map<String, String>) onSettingsUpdated;
+
+  const SettingsScreen({super.key, required this.timeSettings, required this.onSettingsUpdated});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -16,51 +17,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool aboutEnabled = false;
 
   // Time settings data
-  Map<String, String> timeSettings = {
-    'Pomodoro': '25',
-    'Short Break': '05',
-    'Long Break': '15',
-  };
+  late Map<String, String> timeSettings;
 
   @override
   void initState() {
     super.initState();
+    timeSettings = widget.timeSettings;
     _fetchDataFromFirestore();
   }
 
-  // Fetch data from Firestore
   Future<void> _fetchDataFromFirestore() async {
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance
-        .collection("podomoroapp")
-        .doc("5Z1axeBfpxb2CzviJYlu")
-        .get();
+    try {
+      DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection("pomodoroapp")
+          .doc("5Z1axeBfpxb2CzviJYlu")
+          .get();
 
-    if (snapshot.exists) {
-      setState(() {
-        timeSettings['Pomodoro'] = snapshot['pomodoro']['pomodoro'].toString();
-        timeSettings['Short Break'] = snapshot['pomodoro']['shortBreak'].toString();
-        timeSettings['Long Break'] = snapshot['pomodoro']['longBreak'].toString();
-      });
+      if (snapshot.exists) {
+        setState(() {
+          timeSettings['Pomodoro'] = snapshot['pomodoro']['pomodoro'].toString();
+          timeSettings['Short Break'] = snapshot['pomodoro']['shortBreak'].toString();
+          timeSettings['Long Break'] = snapshot['pomodoro']['longBreak'].toString();
+        });
+      }
+    } catch (e) {
+      print("Error fetching data: $e");
     }
   }
 
   Future<void> _updateData() async {
     try {
       await FirebaseFirestore.instance
-          .collection("podomoroapp")
+          .collection("pomodoroapp")
           .doc("5Z1axeBfpxb2CzviJYlu")
           .update({
         'pomodoro': {
           'pomodoro': int.parse(timeSettings['Pomodoro']!),
           'shortBreak': int.parse(timeSettings['Short Break']!),
-          'longBreak': int.parse(timeSettings['Long Break']!)
+          'longBreak': int.parse(timeSettings['Long Break']!),
         }
       });
+      // Pass updated settings back to HomeScreen
+      widget.onSettingsUpdated(timeSettings);
+      Navigator.pop(context); // Close the settings screen
     } catch (e) {
       print("Error updating data: $e");
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +137,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
               SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _updateData,
+                child: Text('Save Settings'),
+              ),
             ],
           ),
         ),
@@ -147,7 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.white)),
+          Text(label, style: const TextStyle(color: Colors.white)),
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10.0),
@@ -170,7 +177,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setState(() {
                   timeSettings[label] = newValue!;
                 });
-                _updateData();
               },
             ),
           ),
@@ -213,10 +219,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildAboutOption() {
     return GestureDetector(
       onTap: () {
-        setState(() {
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => const AboutScreen()));
-        });
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AboutScreen()),
+        );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10.0),

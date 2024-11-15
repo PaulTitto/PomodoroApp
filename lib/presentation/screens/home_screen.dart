@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:podomoro_app/feature/screens/main_screen.dart';
-import 'package:podomoro_app/feature/screens/settings_screen.dart';
-import 'package:podomoro_app/feature/widgets/CustomBottomNavigationBar.dart';
+import 'package:podomoro_app/presentation/screens/settings_screen.dart';
+
+import '../widgets/CustomBottomNavigationBar.dart';
+import 'main_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,25 +19,24 @@ class _HomeScreenState extends State<HomeScreen> {
   // Define a GlobalKey to reference MainScreenState
   final GlobalKey<MainScreenState> _mainScreenKey = GlobalKey<MainScreenState>();
 
+  // Data to store the settings
+  Map<String, String> timeSettings = {
+    'Pomodoro': '25',
+    'Short Break': '05',
+    'Long Break': '15',
+  };
+
   void _onTabSelected(int index) {
     setState(() {
       _currentIndex = index;
     });
   }
 
-  Future<void> _saveSettingsToFirestore() async {
-    try {
-      await FirebaseFirestore.instance.collection("podomoroapp").doc("5Z1axeBfpxb2CzviJYlu").update({
-        'pomodoro': {
-          'pomodoro': 25,  // Example values; replace with dynamic data if needed
-          'shortBreak': 5,
-          'longBreak': 10
-        }
-      });
-      print("Settings saved successfully.");
-    } catch (e) {
-      print("Error saving settings: $e");
-    }
+  // Callback to update time settings
+  void _updateSettings(Map<String, String> newSettings) {
+    setState(() {
+      timeSettings = newSettings;
+    });
   }
 
   @override
@@ -44,15 +44,19 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Center(
         child: _currentIndex == 0
-            ? MainScreen(key: _mainScreenKey)  // Pass the GlobalKey to MainScreen
-            : SettingsScreen(),
+            ? MainScreen(key: _mainScreenKey)
+            : SettingsScreen(
+          timeSettings: timeSettings,
+          onSettingsUpdated: _updateSettings,
+        ),
       ),
       floatingActionButton: SizedBox(
         width: 70,
         height: 70,
-        child: _currentIndex == 0 ? _HomeFAB() : _SettingFAB(),
+        // child: _currentIndex == 0 ? _HomeFAB() : _SettingFAB(),
+        child: _currentIndex == 0 ? _HomeFAB() : null,
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      floatingActionButtonLocation: _currentIndex == 0 ? FloatingActionButtonLocation.endDocked : null,
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _currentIndex,
         onSelected: _onTabSelected,
@@ -60,7 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Define the Floating Action Button for Play/Pause
   Widget _HomeFAB() {
     return FloatingActionButton(
       shape: const RoundedRectangleBorder(
@@ -78,7 +81,6 @@ class _HomeScreenState extends State<HomeScreen> {
           isPlaying = !isPlaying;
         });
 
-        // Start or stop timer in MainScreen
         if (isPlaying) {
           _mainScreenKey.currentState?.startTimer();
         } else {
@@ -88,7 +90,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Define the Floating Action Button for Saving Settings
   Widget _SettingFAB() {
     return FloatingActionButton(
       shape: const RoundedRectangleBorder(
@@ -101,7 +102,25 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.white,
         size: 30,
       ),
-      onPressed: _saveSettingsToFirestore,
+      onPressed: () {
+        // You can call any function to save the settings here if needed
+        _saveSettingsToFirestore();
+      },
     );
+  }
+
+  Future<void> _saveSettingsToFirestore() async {
+    try {
+      await FirebaseFirestore.instance.collection("pomodoroapp").doc("5Z1axeBfpxb2CzviJYlu").update({
+        'pomodoro': {
+          'pomodoro': int.parse(timeSettings['Pomodoro']!),
+          'shortBreak': int.parse(timeSettings['Short Break']!),
+          'longBreak': int.parse(timeSettings['Long Break']!),
+        }
+      });
+      print("Settings saved successfully.");
+    } catch (e) {
+      print("Error saving settings: $e");
+    }
   }
 }

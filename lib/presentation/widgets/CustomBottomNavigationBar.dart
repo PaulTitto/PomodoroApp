@@ -35,7 +35,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
             ),
           ),
           const SizedBox(
-            width: 70, // Space for FAB or additional center item if needed
+            width: 70,
           ),
         ],
       ),

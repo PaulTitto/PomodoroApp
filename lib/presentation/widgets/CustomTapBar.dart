@@ -25,7 +25,6 @@ class _CustomtapbarState extends State<Customtapbar> {
       padding: const EdgeInsets.only(bottom: 20.0),
       child: TabBar(
         onTap: (index) {
-          // Notify MainScreen of the selected duration based on tab index
           if (index == 0) {
             widget.onTabSelected(widget.shortBreakDuration);
           } else if (index == 1) {
