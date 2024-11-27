@@ -19,27 +19,33 @@ class AboutScreen extends StatelessWidget {
           ),
           width: 300,
           height: 450,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: Text(
-                  "PomodoroFocus is a productivity app designed to help you stay focused and manage your time effectively. "
-                      "Based on the Pomodoro Technique, this app encourages working in short, intense intervals with scheduled breaks.",
-                  style: const TextStyle(color: Colors.white, fontSize: 15.0),
+          child: SingleChildScrollView( // Added ScrollView for overflow
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  child: Text(
+                    "PomodoroFocus is a productivity app designed to help you stay focused and manage your time effectively. "
+                        "Based on the Pomodoro Technique, this app encourages working in short, intense intervals with scheduled breaks.",
+                    style: const TextStyle(color: Colors.white, fontSize: 15.0),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Text(
+                  "- Podomoro App -",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13.0,
+                      fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-              ),
-              const Text(
-                "- Podomoro App -",
-                style: TextStyle(color: Colors.white, fontSize: 13.0, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
+
     );
   }
 }

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'about_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Map<String, String> timeSettings;
@@ -13,17 +12,24 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool notificationsEnabled = true;
-  bool aboutEnabled = false;
-
-  // Time settings data
   late Map<String, String> timeSettings;
 
   @override
   void initState() {
     super.initState();
-    timeSettings = widget.timeSettings;
+    timeSettings = Map.from(widget.timeSettings); // Create a copy to avoid modifying the parent map directly
+    _ensureValidSettings();
     _fetchDataFromFirestore();
+  }
+
+  // Ensure timeSettings has valid default values
+  void _ensureValidSettings() {
+    const defaultOptions = ['05', '10', '15', '20', '25', '30'];
+    timeSettings.forEach((key, value) {
+      if (!defaultOptions.contains(value)) {
+        timeSettings[key] = '25'; // Set default to '25' if invalid
+      }
+    });
   }
 
   Future<void> _fetchDataFromFirestore() async {
@@ -35,9 +41,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (snapshot.exists) {
         setState(() {
-          timeSettings['Pomodoro'] = snapshot['pomodoro']['pomodoro'].toString();
-          timeSettings['Short Break'] = snapshot['pomodoro']['shortBreak'].toString();
-          timeSettings['Long Break'] = snapshot['pomodoro']['longBreak'].toString();
+          timeSettings['Pomodoro'] = _validateTime(snapshot['pomodoro']['pomodoro'].toString());
+          timeSettings['Short Break'] = _validateTime(snapshot['pomodoro']['shortBreak'].toString());
+          timeSettings['Long Break'] = _validateTime(snapshot['pomodoro']['longBreak'].toString());
         });
       }
     } catch (e) {
@@ -45,23 +51,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _updateData() async {
+  // Validate Firestore values against valid options
+  String _validateTime(String value) {
+    const defaultOptions = ['05', '10', '15', '20', '25', '30'];
+    return defaultOptions.contains(value) ? value : '25';
+  }
+
+  Future<void> _updateDataToFirestore() async {
     try {
-      await FirebaseFirestore.instance
-          .collection("pomodoroapp")
-          .doc("5Z1axeBfpxb2CzviJYlu")
-          .update({
+      await FirebaseFirestore.instance.collection("pomodoroapp").doc("5Z1axeBfpxb2CzviJYlu").update({
         'pomodoro': {
           'pomodoro': int.parse(timeSettings['Pomodoro']!),
           'shortBreak': int.parse(timeSettings['Short Break']!),
           'longBreak': int.parse(timeSettings['Long Break']!),
         }
       });
-      // Pass updated settings back to HomeScreen
+
+      // Pass updated settings back to the parent screen
       widget.onSettingsUpdated(timeSettings);
-      Navigator.pop(context); // Close the settings screen
+
+      // Show a success Snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Settings saved successfully!")),
+      );
     } catch (e) {
-      print("Error updating data: $e");
+      print("Error saving settings: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to save settings. Please try again.")),
+      );
     }
   }
 
@@ -71,13 +88,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: Color(0xFFD047FF),
+          color: const Color(0xFFD047FF),
           borderRadius: BorderRadius.circular(30.0),
           boxShadow: [
             BoxShadow(
               color: Colors.black26,
               blurRadius: 10,
-              offset: Offset(0, 5),
+              offset: const Offset(0, 5),
             ),
           ],
         ),
@@ -89,7 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     "Settings",
                     style: TextStyle(
                       fontSize: 22,
@@ -98,14 +115,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, color: Colors.white),
+                    icon: const Icon(Icons.close, color: Colors.white),
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
                   ),
                 ],
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
                 'TIME (MINUTES)',
                 style: TextStyle(
@@ -113,7 +130,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: Colors.white.withOpacity(0.8),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Column(
                 children: [
                   _buildTimeSetting('Pomodoro'),
@@ -121,25 +138,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _buildTimeSetting('Long Break'),
                 ],
               ),
-              SizedBox(height: 20),
-              Text(
-                'ADVANCED SETTINGS',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.white.withOpacity(0.8),
-                ),
-              ),
-              SizedBox(height: 10),
-              Column(
-                children: [
-                  _buildNotificationToggle(),
-                  _buildAboutOption(),
-                ],
-              ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _updateData,
-                child: Text('Save Settings'),
+                onPressed: _updateDataToFirestore,
+                child: const Text('Save Settings'),
               ),
             ],
           ),
@@ -162,15 +164,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             width: 100,
             child: DropdownButton<String>(
-              value: timeSettings[label],
-              icon: Icon(Icons.arrow_drop_down, color: Colors.white),
-              dropdownColor: Color(0xFFD047FF),
+              value: timeSettings[label], // Ensure this value is updated properly
+              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+              dropdownColor: const Color(0xFFD047FF),
               isExpanded: true,
               underline: Container(),
               items: ['05', '10', '15', '20', '25', '30']
                   .map((e) => DropdownMenuItem(
                 value: e,
-                child: Center(child: Text(e, style: TextStyle(color: Colors.white))),
+                child: Center(
+                  child: Text(e, style: const TextStyle(color: Colors.white)),
+                ),
               ))
                   .toList(),
               onChanged: (newValue) {
@@ -181,63 +185,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildNotificationToggle() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.notifications, color: Colors.white),
-              SizedBox(width: 10),
-              Text("Notifications", style: TextStyle(color: Colors.white)),
-            ],
-          ),
-          Transform.scale(
-            scale: 0.8,
-            child: Switch(
-              value: notificationsEnabled,
-              activeColor: Color(0xFFD047FF),
-              activeTrackColor: Colors.white,
-              onChanged: (bool value) {
-                setState(() {
-                  notificationsEnabled = value;
-                });
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAboutOption() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AboutScreen()),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.info, color: Colors.white),
-                SizedBox(width: 10),
-                Text("More information about this app", style: TextStyle(color: Colors.white)),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

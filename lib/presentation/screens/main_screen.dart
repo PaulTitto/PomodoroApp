@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:podomoro_app/presentation/screens/settings_screen.dart';
 import '../widgets/CustomTapBar.dart';
 
 class MainScreen extends StatefulWidget {
@@ -21,25 +22,28 @@ class MainScreenState extends State<MainScreen> {
   int longBreakDuration = 900;
 
   Future<void> _fetchDataFromFirestore() async {
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance
-        .collection("podomoroapp")
-        .doc("5Z1axeBfpxb2CzviJYlu")
-        .get();
+    try {
+      DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection("pomodoroapp")
+          .doc("5Z1axeBfpxb2CzviJYlu")
+          .get();
 
-    if (snapshot.exists) {
-      setState(() {
-        pomodoroDuration = int.parse(snapshot['pomodoro']['pomodoro'].toString()) * 60;
-        shortBreakDuration = int.parse(snapshot['pomodoro']['shortBreak'].toString()) * 60;
-        longBreakDuration = int.parse(snapshot['pomodoro']['longBreak'].toString()) * 60;
-        selectedDuration = pomodoroDuration;
-        duration = selectedDuration;
-      });
+      if (snapshot.exists) {
+        setState(() {
+          pomodoroDuration = int.parse(snapshot['pomodoro']['pomodoro'].toString()) * 60;
+          shortBreakDuration = int.parse(snapshot['pomodoro']['shortBreak'].toString()) * 60;
+          longBreakDuration = int.parse(snapshot['pomodoro']['longBreak'].toString()) * 60;
+          selectedDuration = pomodoroDuration;
+          duration = selectedDuration;
+        });
+      }
+    } catch (e) {
+      print("Error fetching Firestore data: $e");
     }
   }
 
   void startTimer() {
     _timer?.cancel();
-
     setState(() {
       progress = 1.0;
     });
@@ -64,12 +68,13 @@ class MainScreenState extends State<MainScreen> {
     });
   }
 
-  void onTabSelected(int newDuration) {
-    _timer?.cancel();
+  void _updateTimeSettings(Map<String, String> updatedSettings) {
     setState(() {
-      selectedDuration = newDuration;
+      pomodoroDuration = int.parse(updatedSettings['Pomodoro']!) * 60;
+      shortBreakDuration = int.parse(updatedSettings['Short Break']!) * 60;
+      longBreakDuration = int.parse(updatedSettings['Long Break']!) * 60;
+      selectedDuration = pomodoroDuration;
       duration = selectedDuration;
-      progress = 1.0;
     });
   }
 
@@ -95,7 +100,7 @@ class MainScreenState extends State<MainScreen> {
                     Container(
                       width: 150,
                       height: 150,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
                           colors: [Colors.purpleAccent, Colors.purple],
@@ -130,10 +135,37 @@ class MainScreenState extends State<MainScreen> {
               pomodoroDuration: pomodoroDuration,
               shortBreakDuration: shortBreakDuration,
               longBreakDuration: longBreakDuration,
-              onTabSelected: onTabSelected,
+              onTabSelected: (newDuration) {
+                setState(() {
+                  selectedDuration = newDuration;
+                  duration = selectedDuration;
+                  progress = 1.0;
+                });
+              },
             ),
           ],
         ),
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: () async {
+        //     final updatedSettings = await Navigator.push(
+        //       context,
+        //       MaterialPageRoute(
+        //         builder: (context) => SettingsScreen(
+        //           timeSettings: {
+        //             'Pomodoro': (pomodoroDuration ~/ 60).toString(),
+        //             'Short Break': (shortBreakDuration ~/ 60).toString(),
+        //             'Long Break': (longBreakDuration ~/ 60).toString(),
+        //           },
+        //           onSettingsUpdated: _updateTimeSettings,
+        //         ),
+        //       ),
+        //     );
+        //     if (updatedSettings != null) {
+        //       _updateTimeSettings(updatedSettings);
+        //     }
+        //   },
+          // child: const Icon(Icons.settings),
+        // ),
       ),
     );
   }
