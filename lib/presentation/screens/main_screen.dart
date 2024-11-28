@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:podomoro_app/presentation/screens/settings_screen.dart';
 import '../widgets/CustomTapBar.dart';
 
 class MainScreen extends StatefulWidget {
@@ -21,6 +20,8 @@ class MainScreenState extends State<MainScreen> {
   int pomodoroDuration = 1500;
   int longBreakDuration = 900;
 
+  int allResult = 0;
+
   Future<void> _fetchDataFromFirestore() async {
     try {
       DocumentSnapshot snapshot = await FirebaseFirestore.instance
@@ -33,6 +34,9 @@ class MainScreenState extends State<MainScreen> {
           pomodoroDuration = int.parse(snapshot['pomodoro']['pomodoro'].toString()) * 60;
           shortBreakDuration = int.parse(snapshot['pomodoro']['shortBreak'].toString()) * 60;
           longBreakDuration = int.parse(snapshot['pomodoro']['longBreak'].toString()) * 60;
+
+          // This is for Adding how many time we need time
+          allResult = int.parse(snapshot['all_result'].toString());
           selectedDuration = pomodoroDuration;
           duration = selectedDuration;
         });
@@ -41,6 +45,8 @@ class MainScreenState extends State<MainScreen> {
       print("Error fetching Firestore data: $e");
     }
   }
+
+
 
   void startTimer() {
     _timer?.cancel();
@@ -60,6 +66,7 @@ class MainScreenState extends State<MainScreen> {
     });
   }
 
+
   void stopTimer() {
     _timer?.cancel();
     setState(() {
@@ -68,15 +75,15 @@ class MainScreenState extends State<MainScreen> {
     });
   }
 
-  void _updateTimeSettings(Map<String, String> updatedSettings) {
-    setState(() {
-      pomodoroDuration = int.parse(updatedSettings['Pomodoro']!) * 60;
-      shortBreakDuration = int.parse(updatedSettings['Short Break']!) * 60;
-      longBreakDuration = int.parse(updatedSettings['Long Break']!) * 60;
-      selectedDuration = pomodoroDuration;
-      duration = selectedDuration;
-    });
-  }
+  // void _updateTimeSettings(Map<String, String> updatedSettings) {
+  //   setState(() {
+  //     pomodoroDuration = int.parse(updatedSettings['Pomodoro']!) * 60;
+  //     shortBreakDuration = int.parse(updatedSettings['Short Break']!) * 60;
+  //     longBreakDuration = int.parse(updatedSettings['Long Break']!) * 60;
+  //     selectedDuration = pomodoroDuration;
+  //     duration = selectedDuration;
+  //   });
+  // }
 
   @override
   void initState() {
@@ -136,36 +143,41 @@ class MainScreenState extends State<MainScreen> {
               shortBreakDuration: shortBreakDuration,
               longBreakDuration: longBreakDuration,
               onTabSelected: (newDuration) {
-                setState(() {
-                  selectedDuration = newDuration;
-                  duration = selectedDuration;
-                  progress = 1.0;
-                });
+                if (_timer != null &&_timer!.isActive){
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("You cannot switch modes while the timer is running!"),
+                          duration: Duration(seconds: 2),
+                      )
+                    );
+                }else{
+                  setState(() {
+                    selectedDuration = newDuration;
+                    duration = selectedDuration;
+                    progress = 1.0;
+                  });
+
+                  String mode = '';
+                  if (newDuration == pomodoroDuration) {
+                    mode = "Pomodoro session started!";
+                  } else if (newDuration == shortBreakDuration) {
+                    mode = "Short break started!";
+                  } else if (newDuration == longBreakDuration) {
+                    mode = "Long break started!";
+                  }
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(mode),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
               },
             ),
           ],
         ),
-        // floatingActionButton: FloatingActionButton(
-        //   onPressed: () async {
-        //     final updatedSettings = await Navigator.push(
-        //       context,
-        //       MaterialPageRoute(
-        //         builder: (context) => SettingsScreen(
-        //           timeSettings: {
-        //             'Pomodoro': (pomodoroDuration ~/ 60).toString(),
-        //             'Short Break': (shortBreakDuration ~/ 60).toString(),
-        //             'Long Break': (longBreakDuration ~/ 60).toString(),
-        //           },
-        //           onSettingsUpdated: _updateTimeSettings,
-        //         ),
-        //       ),
-        //     );
-        //     if (updatedSettings != null) {
-        //       _updateTimeSettings(updatedSettings);
-        //     }
-        //   },
-          // child: const Icon(Icons.settings),
-        // ),
+
       ),
     );
   }

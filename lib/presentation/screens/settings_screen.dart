@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:podomoro_app/presentation/dashboard/detail_dashboard.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Map<String, String> timeSettings;
@@ -17,21 +18,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    timeSettings = Map.from(widget.timeSettings); // Create a copy to avoid modifying the parent map directly
+    timeSettings = Map.from(widget.timeSettings);
     _ensureValidSettings();
     _fetchDataFromFirestore();
   }
 
-  // Ensure timeSettings has valid default values
   void _ensureValidSettings() {
     const defaultOptions = ['05', '10', '15', '20', '25', '30'];
     timeSettings.forEach((key, value) {
       if (!defaultOptions.contains(value)) {
-        timeSettings[key] = '25'; // Set default to '25' if invalid
+        timeSettings[key] = '25';
       }
     });
   }
 
+  // Validate Firestore values against valid options
+  String _validateTime(String value) {
+    const defaultOptions = ['05', '10', '15', '20', '25', '30'];
+    return defaultOptions.contains(value) ? value : '25';
+  }
   Future<void> _fetchDataFromFirestore() async {
     try {
       DocumentSnapshot snapshot = await FirebaseFirestore.instance
@@ -51,11 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // Validate Firestore values against valid options
-  String _validateTime(String value) {
-    const defaultOptions = ['05', '10', '15', '20', '25', '30'];
-    return defaultOptions.contains(value) ? value : '25';
-  }
+
 
   Future<void> _updateDataToFirestore() async {
     try {
@@ -138,11 +139,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _buildTimeSetting('Long Break'),
                 ],
               ),
+              const SizedBox(height: 10),
+              Text(
+                'ADVANCE SETTINGS',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.white.withOpacity(0.8),
+                ),
+              ),
+
+
+              const SizedBox(height: 10),
+              GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const DetailDashboard()),
+                    );
+                  },
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center, // Center the text
+                      children: [
+                        Icon(
+                          Icons.dashboard, // Dashboard icon
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: 8), // Space between icon and text
+                        Text(
+                          'DASHBOARD',
+                          style: TextStyle(
+                            fontSize: 16, // Slightly larger font for better readability
+                            fontWeight: FontWeight.bold, // Bold text for emphasis
+                            color: Colors.white, // Text color
+                            letterSpacing: 1.5, // Adds some spacing between letters
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _updateDataToFirestore,
                 child: const Text('Save Settings'),
               ),
+
             ],
           ),
         ),

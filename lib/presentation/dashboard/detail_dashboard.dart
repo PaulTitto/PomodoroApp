@@ -52,7 +52,11 @@ class _DetailDashboardState extends State<DetailDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Dashboard Details"),
+        title: const Text(
+            "Dashboard Details",
+          style: TextStyle(color: Colors.white),
+
+        ),
         backgroundColor: Colors.purple,
       ),
       body: isLoading
@@ -72,7 +76,7 @@ class _DetailDashboardState extends State<DetailDashboard> {
             ),
             const SizedBox(height: 20),
             Text(
-              "All Time Completed: ${dashboardData!['all_time']} minutes",
+              "All Time Completed: ${dashboardData!['all_result']} minutes",
               style: const TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 10),
