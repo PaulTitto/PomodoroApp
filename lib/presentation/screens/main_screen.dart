@@ -1,13 +1,11 @@
-import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../widgets/CustomTapBar.dart';
+import 'dart:async'; // For Timer
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  const MainScreen({Key? key}) : super(key: key);
 
   @override
-  State<MainScreen> createState() => MainScreenState();
+  MainScreenState createState() => MainScreenState();
 }
 
 class MainScreenState extends State<MainScreen> {
@@ -15,42 +13,19 @@ class MainScreenState extends State<MainScreen> {
   int duration = 1500;
   int selectedDuration = 1500;
   Timer? _timer;
+  bool isTimerRunning = false; // Track if timer is running
 
   int shortBreakDuration = 300;
   int pomodoroDuration = 1500;
   int longBreakDuration = 900;
 
-  int allResult = 0;
+  int _selectedIndex = 0; // Track selected index in BottomNavigationBar
 
-  Future<void> _fetchDataFromFirestore() async {
-    try {
-      DocumentSnapshot snapshot = await FirebaseFirestore.instance
-          .collection("pomodoroapp")
-          .doc("5Z1axeBfpxb2CzviJYlu")
-          .get();
-
-      if (snapshot.exists) {
-        setState(() {
-          pomodoroDuration = int.parse(snapshot['pomodoro']['pomodoro'].toString()) * 60;
-          shortBreakDuration = int.parse(snapshot['pomodoro']['shortBreak'].toString()) * 60;
-          longBreakDuration = int.parse(snapshot['pomodoro']['longBreak'].toString()) * 60;
-
-          // This is for Adding how many time we need time
-          allResult = int.parse(snapshot['all_result'].toString());
-          selectedDuration = pomodoroDuration;
-          duration = selectedDuration;
-        });
-      }
-    } catch (e) {
-      print("Error fetching Firestore data: $e");
-    }
-  }
-
-
-
+  // Timer functionality
   void startTimer() {
     _timer?.cancel();
     setState(() {
+      isTimerRunning = true;
       progress = 1.0;
     });
 
@@ -62,122 +37,200 @@ class MainScreenState extends State<MainScreen> {
         });
       } else {
         timer.cancel();
+        setState(() {
+          isTimerRunning = false; // Reset timer status when done
+        });
       }
     });
   }
 
+  void pauseTimer() {
+    _timer?.cancel();
+    setState(() {
+      isTimerRunning = false; // Pause timer
+    });
+  }
 
   void stopTimer() {
     _timer?.cancel();
     setState(() {
-      duration = selectedDuration;
+      // Check which mode the timer is in, and set accordingly
+      if (selectedDuration == pomodoroDuration) {
+        // If in Pomodoro, switch to Short Break
+        selectedDuration = shortBreakDuration;
+        duration = selectedDuration;
+        _selectedIndex = 0; // Switch to Short Break tab
+      } else if (selectedDuration == shortBreakDuration) {
+        // If in Short Break, switch to Pomodoro
+        selectedDuration = pomodoroDuration;
+        duration = selectedDuration;
+        _selectedIndex = 1; // Switch to Pomodoro tab
+      } else if (selectedDuration == longBreakDuration) {
+        // If in Long Break, switch to Pomodoro
+        selectedDuration = pomodoroDuration;
+        duration = selectedDuration;
+        _selectedIndex = 1; // Switch to Pomodoro tab
+      }
       progress = 1.0;
+      isTimerRunning = false; // Reset timer status
     });
   }
 
-  // void _updateTimeSettings(Map<String, String> updatedSettings) {
-  //   setState(() {
-  //     pomodoroDuration = int.parse(updatedSettings['Pomodoro']!) * 60;
-  //     shortBreakDuration = int.parse(updatedSettings['Short Break']!) * 60;
-  //     longBreakDuration = int.parse(updatedSettings['Long Break']!) * 60;
-  //     selectedDuration = pomodoroDuration;
-  //     duration = selectedDuration;
-  //   });
-  // }
+  // Function to handle content based on the selected tab
+  void handleTabSelection(int index) {
+    if (isTimerRunning) {
+      // If timer is running, prevent tab change
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Cannot Swap"),
+            content: const Text("You can't switch tabs while the timer is running."),
+            actions: <Widget>[
+              TextButton(
+                child: const Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchDataFromFirestore();
+    setState(() {
+      _selectedIndex = index;
+
+      // Change the selected duration based on the tab
+      if (index == 0) {
+        selectedDuration = shortBreakDuration;
+        duration = selectedDuration;
+      } else if (index == 1) {
+        selectedDuration = pomodoroDuration;
+        duration = selectedDuration;
+      } else if (index == 2) {
+        selectedDuration = longBreakDuration;
+        duration = selectedDuration;
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      initialIndex: 1,
-      child: Scaffold(
-        body: Column(
-          children: [
-            Expanded(
-              child: Center(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 150,
-                      height: 150,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [Colors.purpleAccent, Colors.purple],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+    return Scaffold(
+      appBar: AppBar(title: const Text("Pomodoro Timer")),
+      body: Column(
+        children: [
+          // Bottom Navigation Bar at the top
+          BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            onTap: handleTabSelection,
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.timer),
+                label: 'Short Break',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.brightness_2),
+                label: 'Pomodoro',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.brightness_7),
+                label: 'Long Break',
+              ),
+            ],
+          ),
+
+          // Timer and Progress Indicator
+          Expanded(
+            child: Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Circle Background
+                  Container(
+                    width: 150,
+                    height: 150,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [Colors.purpleAccent, Colors.purple],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
                     ),
-                    SizedBox(
-                      width: 130,
-                      height: 130,
-                      child: CircularProgressIndicator(
-                        value: progress,
-                        strokeWidth: 8,
-                        backgroundColor: Colors.white.withOpacity(0.2),
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
+                  ),
+                  // Progress Circle
+                  SizedBox(
+                    width: 130,
+                    height: 130,
+                    child: CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 8,
+                      backgroundColor: Colors.white.withOpacity(0.2),
+                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
-                    Text(
-                      "${(duration ~/ 60).toString().padLeft(2, '0')}:${(duration % 60).toString().padLeft(2, '0')}",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  ),
+                  // Timer Display
+                  Text(
+                    "${(duration ~/ 60).toString().padLeft(2, '0')}:${(duration % 60).toString().padLeft(2, '0')}",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            Customtapbar(
-              pomodoroDuration: pomodoroDuration,
-              shortBreakDuration: shortBreakDuration,
-              longBreakDuration: longBreakDuration,
-              onTabSelected: (newDuration) {
-                if (_timer != null &&_timer!.isActive){
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text("You cannot switch modes while the timer is running!"),
-                          duration: Duration(seconds: 2),
-                      )
-                    );
-                }else{
-                  setState(() {
-                    selectedDuration = newDuration;
-                    duration = selectedDuration;
-                    progress = 1.0;
-                  });
+          ),
 
-                  String mode = '';
-                  if (newDuration == pomodoroDuration) {
-                    mode = "Pomodoro session started!";
-                  } else if (newDuration == shortBreakDuration) {
-                    mode = "Short break started!";
-                  } else if (newDuration == longBreakDuration) {
-                    mode = "Long break started!";
-                  }
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(mode),
-                      duration: const Duration(seconds: 2),
+          // Start/Pause and Stop Timer Buttons
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    if (isTimerRunning) {
+                      pauseTimer();
+                    } else {
+                      startTimer();
+                    }
+                  },
+                  child: Icon(
+                    isTimerRunning ? Icons.pause : Icons.play_arrow,
+                    size: 40,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    shape: CircleBorder(),
+                    padding: EdgeInsets.all(20),
+                    backgroundColor: const Color(0xFFD047FF),
+                  ),
+                ),
+                if (!isTimerRunning && duration != selectedDuration)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: ElevatedButton(
+                      onPressed: stopTimer,
+                      child: const Icon(
+                        Icons.stop,
+                        size: 40,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        shape: CircleBorder(),
+                        padding: EdgeInsets.all(20),
+                        backgroundColor: Colors.red,
+                      ),
                     ),
-                  );
-                }
-              },
+                  ),
+              ],
             ),
-          ],
-        ),
-
+          ),
+        ],
       ),
     );
   }

@@ -19,7 +19,7 @@ class AboutScreen extends StatelessWidget {
           ),
           width: 300,
           height: 450,
-          child: SingleChildScrollView( // Added ScrollView for overflow
+          child: SingleChildScrollView( // Added ScrollView for 
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

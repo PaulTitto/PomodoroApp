@@ -18,6 +18,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
+          const SizedBox(
+            width: 40,
+          ),
           IconButton(
             onPressed: () => onSelected(0),
             icon: Icon(
@@ -35,7 +38,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
             ),
           ),
           const SizedBox(
-            width: 70,
+            width: 40,
           ),
         ],
       ),
