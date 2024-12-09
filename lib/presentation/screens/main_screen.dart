@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'dart:async'; // For Timer
 
@@ -10,16 +11,62 @@ class MainScreen extends StatefulWidget {
 
 class MainScreenState extends State<MainScreen> {
   double progress = 1.0;
-  int duration = 1500;
-  int selectedDuration = 1500;
+  int durationInMinutes = 25; // Start with 25 minutes (Pomodoro duration)
+  int selectedDurationInMinutes = 25; // Default Pomodoro duration in minutes
+  int durationInSeconds = 1500; // Duration in seconds (default 25 mins * 60)
   Timer? _timer;
-  bool isTimerRunning = false; // Track if timer is running
+  bool isTimerRunning = false;
 
-  int shortBreakDuration = 300;
-  int pomodoroDuration = 1500;
-  int longBreakDuration = 900;
+  int shortBreakDuration = 5; // in minutes
+  int pomodoroDuration = 25; // in minutes
+  int longBreakDuration = 15; // in minutes
 
-  int _selectedIndex = 0; // Track selected index in BottomNavigationBar
+  int _selectedIndex = 1;
+
+  // A map to store time settings fetched from Firestore
+  Map<String, int> timeSettings = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDataFromFirestore();
+  }
+
+  Future<void> _fetchDataFromFirestore() async {
+    try {
+      DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection("pomodoroapp")
+          .doc("5Z1axeBfpxb2CzviJYlu")
+          .get();
+
+      if (snapshot.exists) {
+        setState(() {
+          // Retrieve time settings and set durations (in minutes)
+          timeSettings['Pomodoro'] = _validateTime(snapshot['pomodoro']['pomodoro'].toString());
+          timeSettings['Short Break'] = _validateTime(snapshot['pomodoro']['shortBreak'].toString());
+          timeSettings['Long Break'] = _validateTime(snapshot['pomodoro']['longBreak'].toString());
+
+          // Update durations based on Firestore values
+          pomodoroDuration = timeSettings['Pomodoro'] ?? 25;
+          shortBreakDuration = timeSettings['Short Break'] ?? 5;
+          longBreakDuration = timeSettings['Long Break'] ?? 15;
+
+          // Set the selected duration initially to Pomodoro
+          selectedDurationInMinutes = pomodoroDuration;
+          durationInMinutes = selectedDurationInMinutes;
+          durationInSeconds = selectedDurationInMinutes * 60; // Convert minutes to seconds
+        });
+      }
+    } catch (e) {
+      print("Error fetching data: $e");
+    }
+  }
+
+  int _validateTime(String time) {
+    // Ensure time is a valid integer and convert to minutes
+    int validTime = int.tryParse(time) ?? 25;
+    return validTime > 0 ? validTime : 25;
+  }
 
   // Timer functionality
   void startTimer() {
@@ -30,15 +77,15 @@ class MainScreenState extends State<MainScreen> {
     });
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (duration > 0) {
+      if (durationInSeconds > 0) {
         setState(() {
-          duration--;
-          progress = duration / selectedDuration;
+          durationInSeconds--;
+          progress = durationInSeconds / (selectedDurationInMinutes * 60); // update progress
         });
       } else {
         timer.cancel();
         setState(() {
-          isTimerRunning = false; // Reset timer status when done
+          isTimerRunning = false;
         });
       }
     });
@@ -47,39 +94,33 @@ class MainScreenState extends State<MainScreen> {
   void pauseTimer() {
     _timer?.cancel();
     setState(() {
-      isTimerRunning = false; // Pause timer
+      isTimerRunning = false;
     });
   }
 
   void stopTimer() {
     _timer?.cancel();
     setState(() {
-      // Check which mode the timer is in, and set accordingly
-      if (selectedDuration == pomodoroDuration) {
-        // If in Pomodoro, switch to Short Break
-        selectedDuration = shortBreakDuration;
-        duration = selectedDuration;
-        _selectedIndex = 0; // Switch to Short Break tab
-      } else if (selectedDuration == shortBreakDuration) {
-        // If in Short Break, switch to Pomodoro
-        selectedDuration = pomodoroDuration;
-        duration = selectedDuration;
-        _selectedIndex = 1; // Switch to Pomodoro tab
-      } else if (selectedDuration == longBreakDuration) {
-        // If in Long Break, switch to Pomodoro
-        selectedDuration = pomodoroDuration;
-        duration = selectedDuration;
-        _selectedIndex = 1; // Switch to Pomodoro tab
+      if (selectedDurationInMinutes == pomodoroDuration) {
+        selectedDurationInMinutes = shortBreakDuration;
+        durationInSeconds = selectedDurationInMinutes * 60; // convert to seconds
+        _selectedIndex = 0;
+      } else if (selectedDurationInMinutes == shortBreakDuration) {
+        selectedDurationInMinutes = pomodoroDuration;
+        durationInSeconds = selectedDurationInMinutes * 60; // convert to seconds
+        _selectedIndex = 1;
+      } else if (selectedDurationInMinutes == longBreakDuration) {
+        selectedDurationInMinutes = pomodoroDuration;
+        durationInSeconds = selectedDurationInMinutes * 60; // convert to seconds
+        _selectedIndex = 1;
       }
       progress = 1.0;
-      isTimerRunning = false; // Reset timer status
+      isTimerRunning = false;
     });
   }
 
-  // Function to handle content based on the selected tab
   void handleTabSelection(int index) {
     if (isTimerRunning) {
-      // If timer is running, prevent tab change
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -103,16 +144,15 @@ class MainScreenState extends State<MainScreen> {
     setState(() {
       _selectedIndex = index;
 
-      // Change the selected duration based on the tab
       if (index == 0) {
-        selectedDuration = shortBreakDuration;
-        duration = selectedDuration;
+        selectedDurationInMinutes = shortBreakDuration;
+        durationInSeconds = selectedDurationInMinutes * 60;
       } else if (index == 1) {
-        selectedDuration = pomodoroDuration;
-        duration = selectedDuration;
+        selectedDurationInMinutes = pomodoroDuration;
+        durationInSeconds = selectedDurationInMinutes * 60;
       } else if (index == 2) {
-        selectedDuration = longBreakDuration;
-        duration = selectedDuration;
+        selectedDurationInMinutes = longBreakDuration;
+        durationInSeconds = selectedDurationInMinutes * 60;
       }
     });
   }
@@ -123,10 +163,11 @@ class MainScreenState extends State<MainScreen> {
       appBar: AppBar(title: const Text("Pomodoro Timer")),
       body: Column(
         children: [
-          // Bottom Navigation Bar at the top
           BottomNavigationBar(
             currentIndex: _selectedIndex,
             onTap: handleTabSelection,
+            selectedItemColor: const Color(0xFFD047FF),
+            unselectedItemColor: Colors.grey,
             items: const <BottomNavigationBarItem>[
               BottomNavigationBarItem(
                 icon: Icon(Icons.timer),
@@ -142,14 +183,11 @@ class MainScreenState extends State<MainScreen> {
               ),
             ],
           ),
-
-          // Timer and Progress Indicator
           Expanded(
             child: Center(
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Circle Background
                   Container(
                     width: 150,
                     height: 150,
@@ -162,7 +200,6 @@ class MainScreenState extends State<MainScreen> {
                       ),
                     ),
                   ),
-                  // Progress Circle
                   SizedBox(
                     width: 130,
                     height: 130,
@@ -173,9 +210,8 @@ class MainScreenState extends State<MainScreen> {
                       valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   ),
-                  // Timer Display
                   Text(
-                    "${(duration ~/ 60).toString().padLeft(2, '0')}:${(duration % 60).toString().padLeft(2, '0')}",
+                    "${(durationInSeconds ~/ 60).toString().padLeft(2, '0')}:${(durationInSeconds % 60).toString().padLeft(2, '0')}",
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -186,8 +222,6 @@ class MainScreenState extends State<MainScreen> {
               ),
             ),
           ),
-
-          // Start/Pause and Stop Timer Buttons
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -207,11 +241,11 @@ class MainScreenState extends State<MainScreen> {
                   ),
                   style: ElevatedButton.styleFrom(
                     shape: CircleBorder(),
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     backgroundColor: const Color(0xFFD047FF),
                   ),
                 ),
-                if (!isTimerRunning && duration != selectedDuration)
+                if (!isTimerRunning && durationInSeconds != selectedDurationInMinutes * 60)
                   Padding(
                     padding: const EdgeInsets.only(left: 16.0),
                     child: ElevatedButton(
@@ -222,7 +256,7 @@ class MainScreenState extends State<MainScreen> {
                       ),
                       style: ElevatedButton.styleFrom(
                         shape: CircleBorder(),
-                        padding: EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(20),
                         backgroundColor: Colors.red,
                       ),
                     ),

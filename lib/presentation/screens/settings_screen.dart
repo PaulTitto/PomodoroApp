@@ -20,9 +20,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
     timeSettings = Map.from(widget.timeSettings);
     _ensureValidSettings();
-    _fetchDataFromFirestore();
+    _fetchDataFromFirestore(); // Make sure data is fetched before the widget is built
   }
 
+  // Ensure settings are valid
   void _ensureValidSettings() {
     const defaultOptions = ['05', '10', '15', '20', '25', '30'];
     timeSettings.forEach((key, value) {
@@ -37,6 +38,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     const defaultOptions = ['05', '10', '15', '20', '25', '30'];
     return defaultOptions.contains(value) ? value : '25';
   }
+
+  // Fetch data from Firestore and update timeSettings
   Future<void> _fetchDataFromFirestore() async {
     try {
       DocumentSnapshot snapshot = await FirebaseFirestore.instance
@@ -56,8 +59,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-
-
+  // Save updated settings to Firestore
   Future<void> _updateDataToFirestore() async {
     try {
       await FirebaseFirestore.instance.collection("pomodoroapp").doc("5Z1axeBfpxb2CzviJYlu").update({
@@ -147,43 +149,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: Colors.white.withOpacity(0.8),
                 ),
               ),
-
-
               const SizedBox(height: 10),
               GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const DetailDashboard()),
-                    );
-                  },
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center, // Center the text
-                      children: [
-                        Icon(
-                          Icons.dashboard, // Dashboard icon
-                          color: Colors.white,
-                        ),
-                        SizedBox(width: 8), // Space between icon and text
-                        Text(
-                          'DASHBOARD',
-                          style: TextStyle(
-                            fontSize: 16, // Slightly larger font for better readability
-                            fontWeight: FontWeight.bold, // Bold text for emphasis
-                            color: Colors.white, // Text color
-                            letterSpacing: 1.5, // Adds some spacing between letters
-                          ),
-                        ),
-                      ],
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const DetailDashboard()),
+                  );
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.dashboard,
+                      color: Colors.white,
                     ),
-                  ),
-
+                    SizedBox(width: 8),
+                    Text(
+                      'DASHBOARD',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _updateDataToFirestore,
                 child: const Text('Save Settings'),
               ),
-
             ],
           ),
         ),
@@ -191,6 +189,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // Build the time setting widget for Pomodoro, Short Break, and Long Break
   Widget _buildTimeSetting(String label) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
