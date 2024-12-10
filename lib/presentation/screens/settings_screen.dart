@@ -42,6 +42,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // Fetch data from Firestore and update timeSettings
   Future<void> _fetchDataFromFirestore() async {
+    setState(() {
+      isLoading = true; // Start loading
+    });
+
     try {
       DocumentSnapshot snapshot = await FirebaseFirestore.instance
           .collection("pomodoroapp")
@@ -51,9 +55,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (snapshot.exists) {
         final pomodoro = snapshot['pomodoro'];
         setState(() {
-          timeSettings['Pomodoro'] = _validateTime(pomodoro['pomodoro'].toString());
-          timeSettings['Short Break'] = _validateTime(pomodoro['shortBreak'].toString());
-          timeSettings['Long Break'] = _validateTime(pomodoro['longBreak'].toString());
+          timeSettings['Pomodoro'] = _validateTime(pomodoro['Pomodoro'].toString());
+          timeSettings['Short Break'] = _validateTime(pomodoro['Short Break'].toString());
+          timeSettings['Long Break'] = _validateTime(pomodoro['Long Break'].toString());
           isLoading = false; // Mark loading as complete
         });
       }
@@ -70,9 +74,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await FirebaseFirestore.instance.collection("pomodoroapp").doc("5Z1axeBfpxb2CzviJYlu").update({
         'pomodoro': {
-          'pomodoro': int.parse(timeSettings['Pomodoro']!),
-          'shortBreak': int.parse(timeSettings['Short Break']!),
-          'longBreak': int.parse(timeSettings['Long Break']!),
+          'Pomodoro': int.parse(timeSettings['Pomodoro']!),
+          'Short Break': int.parse(timeSettings['Short Break']!),
+          'Long Break': int.parse(timeSettings['Long Break']!),
         }
       });
 
@@ -87,26 +91,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       print("Error saving settings: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Failed to save settings. Please try again.")),
-      );
-    }
-  }
-
-  // Save single time setting to Firestore
-  Future<void> _updateSingleTimeSettingToFirestore(String label, String value) async {
-    try {
-      await FirebaseFirestore.instance.collection("pomodoroapp").doc("5Z1axeBfpxb2CzviJYlu").update({
-        'pomodoro': {
-          ...timeSettings, // Include the updated value in Firestore
-          label.toLowerCase().replaceAll(' ', ''): int.parse(value),
-        }
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Updated setting successfully!")),
-      );
-    } catch (e) {
-      print("Error updating setting: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to update setting. Please try again.")),
       );
     }
   }
@@ -209,7 +193,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              // const SizedBox(height: 10),
+              // ElevatedButton(
+              //   onPressed: _fetchDataFromFirestore, // Add a Refresh button here
+              //   child: const Text('Refresh Settings'),
+              // ),
+              const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: _updateDataToFirestore,
                 child: const Text('Save Settings'),
@@ -241,7 +230,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               dropdownColor: const Color(0xFFD047FF),
               isExpanded: true,
               underline: Container(),
-              items: ['05', '10', '15', '20', '25', '30']
+              items: ['01', '05', '10', '15', '20', '25', '30']
                   .map((e) => DropdownMenuItem(
                 value: e,
                 child: Center(
@@ -253,9 +242,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (newValue != null) {
                   setState(() {
                     timeSettings[label] = newValue;
-
-                    // Save changes locally and optionally update Firestore in real-time
-                    _updateSingleTimeSettingToFirestore(label, newValue);
                   });
                 }
               },

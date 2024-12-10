@@ -81,17 +81,17 @@ class _DetailDashboardState extends State<DetailDashboard> {
             ),
             const SizedBox(height: 10),
             Text(
-              "Pomodoro Duration: ${dashboardData!['pomodoro']['pomodoro']} minutes",
+              "Pomodoro Duration: ${dashboardData!['pomodoro']['Pomodoro']} minutes",
               style: const TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 10),
             Text(
-              "Short Break Duration: ${dashboardData!['pomodoro']['shortBreak']} minutes",
+              "Short Break Duration: ${dashboardData!['pomodoro']['Short Break']} minutes",
               style: const TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 10),
             Text(
-              "Long Break Duration: ${dashboardData!['pomodoro']['longBreak']} minutes",
+              "Long Break Duration: ${dashboardData!['pomodoro']['Long Break']} minutes",
               style: const TextStyle(fontSize: 18),
             ),
           ],
