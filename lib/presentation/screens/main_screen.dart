@@ -120,13 +120,14 @@ class MainScreenState extends State<MainScreen> {
   }
 
   void handleTabSelection(int index) {
-    if (isTimerRunning) {
+    // Check if the timer is running or paused
+    if (isTimerRunning || durationInSeconds != selectedDurationInMinutes * 60) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text("Cannot Swap"),
-            content: const Text("You can't switch tabs while the timer is running."),
+            content: const Text("You can't switch tabs while the timer is running or paused."),
             actions: <Widget>[
               TextButton(
                 child: const Text("OK"),
@@ -156,6 +157,7 @@ class MainScreenState extends State<MainScreen> {
       }
     });
   }
+
 
   @override
   Widget build(BuildContext context) {

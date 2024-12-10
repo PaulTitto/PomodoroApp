@@ -14,13 +14,14 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late Map<String, String> timeSettings;
+  bool isLoading = true; // To handle the loading state
 
   @override
   void initState() {
     super.initState();
     timeSettings = Map.from(widget.timeSettings);
     _ensureValidSettings();
-    _fetchDataFromFirestore(); // Make sure data is fetched before the widget is built
+    _fetchDataFromFirestore();
   }
 
   // Ensure settings are valid
@@ -48,14 +49,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           .get();
 
       if (snapshot.exists) {
+        final pomodoro = snapshot['pomodoro'];
         setState(() {
-          timeSettings['Pomodoro'] = _validateTime(snapshot['pomodoro']['pomodoro'].toString());
-          timeSettings['Short Break'] = _validateTime(snapshot['pomodoro']['shortBreak'].toString());
-          timeSettings['Long Break'] = _validateTime(snapshot['pomodoro']['longBreak'].toString());
+          timeSettings['Pomodoro'] = _validateTime(pomodoro['pomodoro'].toString());
+          timeSettings['Short Break'] = _validateTime(pomodoro['shortBreak'].toString());
+          timeSettings['Long Break'] = _validateTime(pomodoro['longBreak'].toString());
+          isLoading = false; // Mark loading as complete
         });
       }
     } catch (e) {
       print("Error fetching data: $e");
+      setState(() {
+        isLoading = false; // Mark loading as complete even if there's an error
+      });
     }
   }
 
@@ -85,8 +91,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  // Save single time setting to Firestore
+  Future<void> _updateSingleTimeSettingToFirestore(String label, String value) async {
+    try {
+      await FirebaseFirestore.instance.collection("pomodoroapp").doc("5Z1axeBfpxb2CzviJYlu").update({
+        'pomodoro': {
+          ...timeSettings, // Include the updated value in Firestore
+          label.toLowerCase().replaceAll(' ', ''): int.parse(value),
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Updated setting successfully!")),
+      );
+    } catch (e) {
+      print("Error updating setting: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to update setting. Please try again.")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return Center(
       child: Container(
         padding: const EdgeInsets.all(16.0),
@@ -160,12 +192,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.dashboard,
                       color: Colors.white,
                     ),
-                    SizedBox(width: 8),
-                    Text(
+                    const SizedBox(width: 8),
+                    const Text(
                       'DASHBOARD',
                       style: TextStyle(
                         fontSize: 16,
@@ -204,7 +236,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             width: 100,
             child: DropdownButton<String>(
-              value: timeSettings[label], // Ensure this value is updated properly
+              value: timeSettings[label], // Set value from `timeSettings`
               icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
               dropdownColor: const Color(0xFFD047FF),
               isExpanded: true,
@@ -218,9 +250,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ))
                   .toList(),
               onChanged: (newValue) {
-                setState(() {
-                  timeSettings[label] = newValue!;
-                });
+                if (newValue != null) {
+                  setState(() {
+                    timeSettings[label] = newValue;
+
+                    // Save changes locally and optionally update Firestore in real-time
+                    _updateSingleTimeSettingToFirestore(label, newValue);
+                  });
+                }
               },
             ),
           ),
