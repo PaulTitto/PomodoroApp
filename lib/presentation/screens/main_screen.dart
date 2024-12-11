@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:async';
 
-import 'package:fluttertoast/fluttertoast.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -118,6 +117,7 @@ class MainScreenState extends State<MainScreen> {
 
         _playSound();
         _showTimerRunningOrPausedAlert();
+        addMinutesForToday(selectedDurationInMinutes);
         updateAllResultDuration(selectedDurationInMinutes);
       }
     });
@@ -222,6 +222,58 @@ class MainScreenState extends State<MainScreen> {
       _resetTimer();
     });
   }
+
+  void addMinutesForToday(int minutes) async {
+    final formattedDate = _getCurrentFormattedDate();
+    DocumentReference documentReference = FirebaseFirestore.instance
+        .collection("pomodoroapp")
+        .doc("5Z1axeBfpxb2CzviJYlu");
+
+    try {
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        DocumentSnapshot snapshot = await transaction.get(documentReference);
+
+        if (!snapshot.exists) {
+          // If the document doesn't exist, create it and add today's entry
+          transaction.set(documentReference, {
+            'time': {formattedDate: minutes}, // Initialize with today's data
+          });
+          print("Document created. Added $minutes minutes for $formattedDate.");
+        } else {
+          // If the document exists, handle the 'time' map
+          Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+          Map<String, dynamic> timeMap = data['time'] ?? {};
+
+          // Check if the 'time' field is missing, and initialize it if necessary
+          if (timeMap.isEmpty) {
+            transaction.update(documentReference, {
+              'time': {formattedDate: minutes},
+            });
+            print("Initialized 'time' field. Added $minutes minutes for $formattedDate.");
+          } else {
+            // Update or add today's minutes
+            int currentMinutes = timeMap[formattedDate] ?? 0;
+            int updatedMinutes = currentMinutes + minutes;
+
+            transaction.update(documentReference, {
+              'time.$formattedDate': updatedMinutes,
+            });
+            print("Updated $formattedDate to $updatedMinutes minutes.");
+          }
+        }
+      });
+    } catch (e) {
+      print("Error adding minutes for today: $e");
+    }
+  }
+
+  String _getCurrentFormattedDate() {
+    final now = DateTime.now();
+    return "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {

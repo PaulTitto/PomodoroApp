@@ -53,9 +53,8 @@ class _DetailDashboardState extends State<DetailDashboard> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-            "Dashboard Details",
+          "Dashboard Details",
           style: TextStyle(color: Colors.white),
-
         ),
         backgroundColor: Colors.purple,
       ),
@@ -79,6 +78,7 @@ class _DetailDashboardState extends State<DetailDashboard> {
               "All Time Completed: ${dashboardData!['all_result']} minutes",
               style: const TextStyle(fontSize: 18),
             ),
+
             const SizedBox(height: 10),
             Text(
               "Pomodoro Duration: ${dashboardData!['pomodoro']['Pomodoro']} minutes",
@@ -94,6 +94,8 @@ class _DetailDashboardState extends State<DetailDashboard> {
               "Long Break Duration: ${dashboardData!['pomodoro']['Long Break']} minutes",
               style: const TextStyle(fontSize: 18),
             ),
+            const SizedBox(height: 20),
+            _buildTimeTable(),
           ],
         ),
       )
@@ -103,6 +105,25 @@ class _DetailDashboardState extends State<DetailDashboard> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
+    );
+  }
+
+  Widget _buildTimeTable() {
+    final timeData = dashboardData!['time'] as Map<String, dynamic>;
+
+    return DataTable(
+      columns: const [
+        DataColumn(label: Text('Date')),
+        DataColumn(label: Text('Minutes')),
+      ],
+      rows: timeData.entries.map((entry) {
+        return DataRow(
+          cells: [
+            DataCell(Text(entry.key)), // Date
+            DataCell(Text(entry.value.toString())), // Minutes
+          ],
+        );
+      }).toList(),
     );
   }
 }
