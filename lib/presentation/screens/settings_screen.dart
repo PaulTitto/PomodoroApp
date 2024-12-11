@@ -64,12 +64,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       print("Error fetching data: $e");
       setState(() {
-        isLoading = false; // Mark loading as complete even if there's an error
+        isLoading = false;
       });
     }
   }
 
-  // Save updated settings to Firestore
   Future<void> _updateDataToFirestore() async {
     try {
       await FirebaseFirestore.instance.collection("pomodoroapp").doc("5Z1axeBfpxb2CzviJYlu").update({

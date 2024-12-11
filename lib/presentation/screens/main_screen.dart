@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'dart:async';
+
+import 'package:fluttertoast/fluttertoast.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -15,8 +18,8 @@ class MainScreenState extends State<MainScreen> {
   int selectedDurationInMinutes = 25; // Default Pomodoro duration in minutes
   int durationInSeconds = 1500; // Duration in seconds
   Timer? _timer;
-  bool isTimerRunning = false; // Whether the timer is running
-  bool isTimerPaused = false; // Whether the timer is paused
+  bool isTimerRunning = false;
+  bool isTimerPaused = false;
 
   int shortBreakDuration = 5; // in minutes
   int pomodoroDuration = 25; // in minutes
@@ -24,6 +27,9 @@ class MainScreenState extends State<MainScreen> {
 
   int allResultDuration = 0;
   int _selectedIndex = 1;
+  bool _isAlertVisible = false;
+
+  final AudioPlayer _audioPlayer = AudioPlayer(); // Initialize audio player
 
   @override
   void initState() {
@@ -79,7 +85,7 @@ class MainScreenState extends State<MainScreen> {
       });
 
       setState(() {
-        allResultDuration += additionalMinutes; // Update local state
+        allResultDuration += additionalMinutes;
       });
 
       print("Successfully updated all result duration!");
@@ -100,21 +106,60 @@ class MainScreenState extends State<MainScreen> {
       if (durationInSeconds > 0) {
         setState(() {
           durationInSeconds--;
-          progress = durationInSeconds / (selectedDurationInMinutes * 60); // Update progress
+          progress = durationInSeconds / (selectedDurationInMinutes * 60);
         });
       } else {
         timer.cancel();
         setState(() {
           isTimerRunning = false;
           isTimerPaused = false;
-          _resetTimer(); // Reset the timer when it completes
+          _resetTimer();
         });
 
-        // Timer completed: update Firebase
+        _playSound();
+        _showTimerRunningOrPausedAlert();
         updateAllResultDuration(selectedDurationInMinutes);
       }
     });
   }
+
+  Future<void> _playSound() async {
+    try {
+      await _audioPlayer.play(
+        AssetSource('done.mp3'),
+      );
+    } catch (e) {
+      print("Error playing sound: $e");
+    }
+  }
+
+  void _showTimerRunningOrPausedAlert() {
+    if (_isAlertVisible) return;
+
+    _isAlertVisible = true;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Pomodoro Timer Alert"),
+          content: const Text(
+              "The Pomodoro timer has completed. Take a break or start a new session."),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("OK"),
+              onPressed: () {
+                _isAlertVisible = false;
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
 
   void pauseTimer() {
     _timer?.cancel();
@@ -129,7 +174,7 @@ class MainScreenState extends State<MainScreen> {
     setState(() {
       isTimerRunning = false;
       isTimerPaused = false;
-      _resetTimer(); // Reset the timer
+      _resetTimer();
     });
   }
 
@@ -174,7 +219,7 @@ class MainScreenState extends State<MainScreen> {
         selectedDurationInMinutes = longBreakDuration;
       }
 
-      _resetTimer(); // Reset the timer for the new selection
+      _resetTimer();
     });
   }
 
@@ -260,7 +305,7 @@ class MainScreenState extends State<MainScreen> {
                     backgroundColor: const Color(0xFFD047FF),
                   ),
                 ),
-                if (isTimerPaused) // Show stop button only if paused
+                if (isTimerPaused)
                   Padding(
                     padding: const EdgeInsets.only(left: 16.0),
                     child: ElevatedButton(

@@ -12,7 +12,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-
   final GlobalKey<MainScreenState> _mainScreenKey = GlobalKey<MainScreenState>();
 
   Map<String, String> timeSettings = {
@@ -20,6 +19,8 @@ class _HomeScreenState extends State<HomeScreen> {
     'Short Break': '05',
     'Long Break': '15',
   };
+
+  bool _isAlertVisible = false; // Track if the alert is visible
 
   void _onTabSelected(int index) {
     final isTimerRunning = _mainScreenKey.currentState?.isTimerRunning ?? false;
@@ -43,6 +44,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showTimerRunningOrPausedAlert() {
+    if (_isAlertVisible) return; // Prevent multiple alerts
+
+    _isAlertVisible = true;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -54,6 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
             TextButton(
               child: const Text("OK"),
               onPressed: () {
+                _isAlertVisible = false;
                 Navigator.of(context).pop();
               },
             ),
@@ -63,9 +69,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _dismissAlertIfVisible() {
+    if (_isAlertVisible) {
+      Navigator.of(context).pop(); // Close the alert dialog
+      _isAlertVisible = false; // Reset the alert visibility flag
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isTimerRunning = _mainScreenKey.currentState?.isTimerRunning ?? false;
+    final isTimerCompleted =
+        (_mainScreenKey.currentState?.durationInSeconds ?? 0) == 0;
+
+    // Dismiss the alert if the timer is completed
+    if (isTimerCompleted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _dismissAlertIfVisible();
+      });
+    }
 
     return Scaffold(
       body: Padding(
