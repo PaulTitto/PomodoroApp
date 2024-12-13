@@ -14,21 +14,21 @@ class MainScreen extends StatefulWidget {
 class MainScreenState extends State<MainScreen> {
   double progress = 1.0;
   int durationInMinutes = 25;
-  int selectedDurationInMinutes = 25; // Default Pomodoro duration in minutes
-  int durationInSeconds = 1500; // Duration in seconds
+  int selectedDurationInMinutes = 25;
+  int durationInSeconds = 1500;
   Timer? _timer;
   bool isTimerRunning = false;
   bool isTimerPaused = false;
 
-  int shortBreakDuration = 5; // in minutes
-  int pomodoroDuration = 25; // in minutes
-  int longBreakDuration = 15; // in minutes
+  int shortBreakDuration = 5;
+  int pomodoroDuration = 25;
+  int longBreakDuration = 15;
 
   int allResultDuration = 0;
   int _selectedIndex = 1;
   bool _isAlertVisible = false;
 
-  final AudioPlayer _audioPlayer = AudioPlayer(); // Initialize audio player
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -55,7 +55,7 @@ class MainScreenState extends State<MainScreen> {
 
           selectedDurationInMinutes = pomodoroDuration;
           durationInMinutes = selectedDurationInMinutes;
-          durationInSeconds = selectedDurationInMinutes * 60; // Convert to seconds
+          durationInSeconds = selectedDurationInMinutes * 60;
         });
       }
     } catch (e) {
@@ -64,7 +64,7 @@ class MainScreenState extends State<MainScreen> {
   }
 
   int _validateTime(dynamic time) {
-    if (time == null) return 25; // Default value
+    if (time == null) return 25;
     if (time is int) return time > 0 ? time : 25;
     if (time is String) {
       final parsedTime = int.tryParse(time);
@@ -117,11 +117,12 @@ class MainScreenState extends State<MainScreen> {
 
         _playSound();
         _showTimerRunningOrPausedAlert();
-        addMinutesForToday(selectedDurationInMinutes);
+        addMinutesForToday(selectedDurationInMinutes); // Ensure minutes are added
         updateAllResultDuration(selectedDurationInMinutes);
       }
     });
   }
+
 
   Future<void> _playSound() async {
     try {
@@ -234,32 +235,22 @@ class MainScreenState extends State<MainScreen> {
         DocumentSnapshot snapshot = await transaction.get(documentReference);
 
         if (!snapshot.exists) {
-          // If the document doesn't exist, create it and add today's entry
           transaction.set(documentReference, {
-            'time': {formattedDate: minutes}, // Initialize with today's data
+            'time': {formattedDate: minutes},
           });
           print("Document created. Added $minutes minutes for $formattedDate.");
         } else {
-          // If the document exists, handle the 'time' map
           Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
           Map<String, dynamic> timeMap = data['time'] ?? {};
 
-          // Check if the 'time' field is missing, and initialize it if necessary
-          if (timeMap.isEmpty) {
-            transaction.update(documentReference, {
-              'time': {formattedDate: minutes},
-            });
-            print("Initialized 'time' field. Added $minutes minutes for $formattedDate.");
-          } else {
-            // Update or add today's minutes
-            int currentMinutes = timeMap[formattedDate] ?? 0;
-            int updatedMinutes = currentMinutes + minutes;
+          int currentMinutes = timeMap[formattedDate] ?? 0;
+          int updatedMinutes = currentMinutes + minutes;
 
-            transaction.update(documentReference, {
-              'time.$formattedDate': updatedMinutes,
-            });
-            print("Updated $formattedDate to $updatedMinutes minutes.");
-          }
+          transaction.update(documentReference, {
+            'time.$formattedDate': updatedMinutes,
+          });
+
+          print("Updated $formattedDate to $updatedMinutes minutes.");
         }
       });
     } catch (e) {
@@ -271,6 +262,8 @@ class MainScreenState extends State<MainScreen> {
     final now = DateTime.now();
     return "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
   }
+
+
 
 
 
