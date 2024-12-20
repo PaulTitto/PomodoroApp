@@ -95,7 +95,7 @@ class _DetailDashboardState extends State<DetailDashboard> {
               style: const TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 20),
-            _buildTimeTable(),
+            // _buildTimeTable(),
           ],
         ),
       )
@@ -108,22 +108,22 @@ class _DetailDashboardState extends State<DetailDashboard> {
     );
   }
 
-  Widget _buildTimeTable() {
-    final timeData = dashboardData!['time'] as Map<String, dynamic>;
-
-    return DataTable(
-      columns: const [
-        DataColumn(label: Text('Date')),
-        DataColumn(label: Text('Minutes')),
-      ],
-      rows: timeData.entries.map((entry) {
-        return DataRow(
-          cells: [
-            DataCell(Text(entry.key)), // Date
-            DataCell(Text(entry.value.toString())), // Minutes
-          ],
-        );
-      }).toList(),
-    );
-  }
+  // Widget _buildTimeTable() {
+  //   final timeData = dashboardData!['time'] as Map<String, dynamic>;
+  //
+  //   return DataTable(
+  //     columns: const [
+  //       DataColumn(label: Text('Date')),
+  //       DataColumn(label: Text('Minutes')),
+  //     ],
+  //     rows: timeData.entries.map((entry) {
+  //       return DataRow(
+  //         cells: [
+  //           DataCell(Text(entry.key)), // Date
+  //           DataCell(Text(entry.value.toString())), // Minutes
+  //         ],
+  //       );
+  //     }).toList(),
+  //   );
+  // }
 }

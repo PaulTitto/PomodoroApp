@@ -132,12 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: Colors.white,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
+
                 ],
               ),
               const SizedBox(height: 10),
